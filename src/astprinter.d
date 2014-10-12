@@ -3,18 +3,29 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+import util_ast;
 import std.d.lexer;
 import std.d.ast;
 import std.d.formatter;
 import std.stdio;
 import std.string;
 import std.array;
+import std.conv;
 
 template tagAndAccept(string tagName)
 {
-	immutable tagAndAccept = `output.writeln("<` ~ tagName ~ `>");`
-		~ tagName ~ `.accept(this);`
-		~ `output.writeln("</` ~ tagName ~ `>");`;
+    immutable tagAndAcceptPositions = `static if (__traits(compiles, {`
+        ~ `size_t value = ` ~ tagName ~ `.startPosition; }))`
+        ~ `string tagAndAcceptPositionsValues = "`
+
+        ~ ` start=\"" ~ to!string(` ~ tagName ~ `.startPosition) ~ "\"`
+        ~ ` end=\"" ~ to!string(` ~ tagName ~ `.endPosition) ~ "\"`
+          
+            ~ `"; else string tagAndAcceptPositionsValues = "";`;
+            
+    immutable tagAndAccept = tagAndAcceptPositions ~ `output.writeln("<` ~ tagName ~ `" ~ tagAndAcceptPositionsValues ~ ">");`
+	    ~ tagName ~ `.accept(this);`
+	    ~ `output.writeln("</` ~ tagName ~ `>");`;
 }
 
 class XMLPrinter : ASTVisitor
